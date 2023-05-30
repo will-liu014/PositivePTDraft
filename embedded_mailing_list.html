@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head><title>Embedded Mailing List</title></head>
+<body>
+
+<div id="mailingListSub" style="text-align: center;">
+
+<h1>Subscribe</h1>
+<p>Sign up with your email address to receive news and updates.</p>
+
+<!-- Email field and submit button (email validation and alerts)-->
+<form id="mailListForm" onsubmit="submitMailListForm(); return false;">
+	<input type="email" id="emailInput" placeholder="Email Address" style="text-align: center;" required>
+	<button type="submit">Sign Up</button>
+</form><br> 
+
+</div> <!-- mailing-list-->
+
+<div id="mailResponse" style="text-align: center;"></div>
+
+<script>
+function submitMailListForm() {
+	var emailInput = document.getElementById('emailInput');
+
+	// HTML5 .checkValidity 
+	if (!emailInput.checkValidity()) {
+		document.getElementById('result').innerHTML = 'Please enter a valid email address';
+		return;
+	}
+
+	// Fetchs DNS information for domain using Google API
+	fetch(`https://dns.google/resolve?name=${emailInput.value.split('@')[1]}`)
+		.then(response => response.json())
+		.then(data => {
+		// if DNS is valid and has an IP address
+		if (data.Status == 0 && data.Answer[0].data.includes('.')) {
+			// Send POST request to Google Form url/formResponse
+			var xhr = new XMLHttpRequest();
+			xhr.open('POST', 'https://docs.google.com/forms/d/e/1FAIpQLSf9bDoOt5dOUOk9yQ7h5QtvGig6wrbW5CvaDoN4ZFAF3eTb-A/formResponse');
+    		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    		xhr.send(`entry.600581240=${encodeURIComponent(emailInput.value)}`);
+    		document.getElementById('mailResponse').innerHTML = `Thank you! Your email (${emailInput.value})<br> has been added to our mailing list!`;
+    		document.querySelector('#mailingListSub').style.display = 'none';
+    	} else {
+    	// DNS invalid or no IP address (e.g @nonexistentdomainxyz123.tld)
+    		document.getElementById('mailResponse').innerHTML = `Unable to validate email domain<br>Please try again or send us an email.`;
+    	} 	})
+    // Usually valid subdomain but missing top level domain (e.g. @gmail instead of @gmail.com)
+    .catch(error => {
+    console.error(error);
+    document.getElementById('mailResponse').innerHTML = `Error processing your request<br>Please try again or send us an email.`;
+    });
+}
+</script>
+
+</body>
+</html>
