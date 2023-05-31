@@ -1,5 +1,6 @@
 function removeUnsubscribedAndDuplicates() {
-  var sheet = SpreadsheetApp.getActiveSheet();
+  // Change spreadsheet URL to specific mailing form sheet
+  var sheet = SpreadsheetApp.SpreadsheetApp.openByUrl('https://docs.google.com/spreadsheets/d/abc1234567/edit').getActiveSheet();
   var data = sheet.getDataRange().getValues();
   var header = data.shift();
   var emailIndex = header.indexOf("Email Address");
