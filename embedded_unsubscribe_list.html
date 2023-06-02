@@ -3,15 +3,37 @@
 <head><title>Embedded Unsubscribe</title></head>
 <body>
 
+<style>
+.unsubscribe-button {
+	display: inline-block;
+	padding: 1% 2%;
+	background: black;
+	border: 0.15em solid dark-grey;
+	color: yellow;
+	border-radius: 8em;
+	text-align: center;
+	font-size: 1em;
+}
+
+.mail-input-field {
+	display: inline-block;
+	padding: 1% 1%;
+	border: 0.15em solid silver;
+	border-radius: 8em;
+	text-align: center;
+	font-size: 1em;
+}
+</style>
+
 <div id="mailingListSub" style="text-align: center;">
 
-<h3>Unsubscribe</h3>
+<h1>Unsubscribe</h1>
 <p>Please enter the email address you would like removed from the mailing list.</p>
 
 <!-- Email field and submit button (email validation and alerts)-->
 <form id="mailListForm" onsubmit="submitMailListForm(); return false;">
-	<input type="email" id="emailInput" placeholder="Email Address" style="text-align: center;" required>
-	<button type="submit">Unsubscribe</button>
+	<input type="email" class="mail-input-field" id="emailInput" placeholder="Email Address" required>
+	<button type="submit" class="unsubscribe-button">Unsubscribe</button>
 </form><br> 
 
 </div> <!-- mailing-list-->
@@ -35,15 +57,28 @@ function submitMailListForm() {
 		// if DNS is valid and has an IP address
 		if (data.Status == 0 && data.Answer[0].data.includes('.')) {
 			// Send POST request to Google Form url/formResponse
-			var xhr = new XMLHttpRequest();
-			xhr.open('POST', 'https://docs.google.com/forms/d/e/1FAIpQLSf9bDoOt5dOUOk9yQ7h5QtvGig6wrbW5CvaDoN4ZFAF3eTb-A/formResponse');
-    		xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-    		xhr.send(`entry.600581240=${encodeURIComponent(emailInput.value)}&entry.475944642=Yes`);
-    		document.getElementById('mailResponse').innerHTML = `Your email (${emailInput.value})<br> will be removed!`;
-    		document.querySelector('#mailingListSub').style.display = 'none';
+			fetch('https://docs.google.com/forms/d/e/1FAIpQLSf9bDoOt5dOUOk9yQ7h5QtvGig6wrbW5CvaDoN4ZFAF3eTb-A/formResponse', {
+				method: 'POST',
+				headers: { // add headers option and set Content-Type header
+					'Content-Type': 'application/x-www-form-urlencoded'},
+  				body: `entry.600581240=${emailInput.value}&entry.475944642=Yes`,
+				mode: 'no-cors'
+				})
+			.then(response => {
+				document.getElementById('mailResponse').innerHTML = `Your email (${emailInput.value})<br> will be removed!`;
+    				document.querySelector('#mailingListSub').style.display = 'none';
+				return;
+				})
+			.catch((error) => {
+				// POST to google forms failed
+				document.getElementById('mailResponse').innerHTML = `Error processing your request<br>Please try again or send us an email.`;
+				console.error(error);
+				return;
+				});
     	} else {
     	// DNS invalid or no IP address (e.g @nonexistentdomainxyz123.tld)
     		document.getElementById('mailResponse').innerHTML = `Unable to validate email domain<br>Please try again or send us an email.`;
+			return;
     	} 	})
     // Usually valid subdomain but missing top level domain (e.g. @gmail instead of @gmail.com)
     .catch(error => {
